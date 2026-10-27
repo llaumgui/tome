@@ -53,24 +53,30 @@ jobs:
       - name: Install backend dependencies
         run: pip install '.[dev]'
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6.1.0
+        with:
+          version: 10
+          cache: true
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install frontend dependencies
-        run: npm ci --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
         working-directory: frontend
 
       - name: Check message catalogs are up to date
         # A PR that adds or edits a <Trans>/t`` string must also commit the
-        # re-extracted src/locales/*/messages.po (npm run i18n:extract).
+        # re-extracted src/locales/*/messages.po (pnpm run i18n:extract).
         run: |
-          npm run i18n:extract
+          pnpm run i18n:extract
           git diff --exit-code -- src/locales \
-            || { echo "::error::Message catalogs are stale. Run 'npm run i18n:extract' in frontend/ and commit src/locales."; exit 1; }
+            || { echo "::error::Message catalogs are stale. Run 'pnpm run i18n:extract' in frontend/ and commit src/locales."; exit 1; }
         working-directory: frontend
 
       - name: Install Playwright browser
